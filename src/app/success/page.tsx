@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 interface BookingDetails {
   id: number;
@@ -18,7 +18,7 @@ interface BookingDetails {
 
 export default function SuccessPage() {
   const searchParams = useSearchParams();
-  const sessionId = searchParams.get('session_id');
+  const sessionId = searchParams.get("session_id");
   const [booking, setBooking] = useState<BookingDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,25 +27,77 @@ export default function SuccessPage() {
     if (sessionId) {
       fetchBookingDetails(sessionId);
     } else {
-      setError('No session ID provided');
+      setError("No session ID provided");
       setLoading(false);
     }
   }, [sessionId]);
 
   const fetchBookingDetails = async (sessionId: string) => {
-    try {
-      const response = await fetch(`/api/booking/${sessionId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setBooking(data);
-      } else {
-        setError('Failed to fetch booking details');
+    const maxRetries = 5;
+    const retryDelay = 1000; // 1 second
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(
+          `Attempt ${attempt} to fetch booking for session: ${sessionId}`
+        );
+        const response = await fetch(`/api/booking/${sessionId}`);
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Booking found:", data);
+          setBooking(data);
+          setLoading(false);
+          return;
+        } else {
+          console.log(
+            `Attempt ${attempt} failed with status: ${response.status}`
+          );
+
+          // If this is the last attempt and booking still not found, try to create it
+          if (attempt === maxRetries) {
+            console.log("Attempting to create booking manually...");
+            try {
+              const createResponse = await fetch(
+                "/api/create-booking-fallback",
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ sessionId }),
+                }
+              );
+
+              if (createResponse.ok) {
+                const bookingData = await createResponse.json();
+                console.log("Booking created manually:", bookingData);
+                setBooking(bookingData);
+                setLoading(false);
+                return;
+              }
+            } catch (createError) {
+              console.error("Failed to create booking manually:", createError);
+            }
+
+            setError("Failed to fetch booking details after multiple attempts");
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error(`Error on attempt ${attempt}:`, error);
+        if (attempt === maxRetries) {
+          setError("Failed to fetch booking details");
+          setLoading(false);
+          return;
+        }
       }
-    } catch (error) {
-      console.error('Error fetching booking:', error);
-      setError('Failed to fetch booking details');
-    } finally {
-      setLoading(false);
+
+      // Wait before retrying
+      if (attempt < maxRetries) {
+        await new Promise((resolve) => setTimeout(resolve, retryDelay));
+      }
     }
   };
 
@@ -65,7 +117,9 @@ export default function SuccessPage() {
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Something went wrong
+          </h1>
           <p className="text-gray-600 mb-6">{error}</p>
           <Link
             href="/booking"
@@ -96,45 +150,57 @@ export default function SuccessPage() {
             <h2 className="text-2xl font-semibold text-gray-900 mb-6">
               Booking Confirmation
             </h2>
-            
+
             <div className="space-y-4">
               <div className="flex justify-between items-center py-3 border-b border-gray-200">
                 <span className="font-medium text-gray-700">Booking ID:</span>
                 <span className="text-gray-900 font-mono">{booking.id}</span>
               </div>
-              
+
               <div className="flex justify-between items-center py-3 border-b border-gray-200">
                 <span className="font-medium text-gray-700">Customer:</span>
                 <span className="text-gray-900">{booking.customer_name}</span>
               </div>
-              
+
               <div className="flex justify-between items-center py-3 border-b border-gray-200">
                 <span className="font-medium text-gray-700">Service Type:</span>
-                <span className="text-gray-900 capitalize">{booking.service_type.replace('-', ' ')}</span>
+                <span className="text-gray-900 capitalize">
+                  {booking.service_type.replace("-", " ")}
+                </span>
               </div>
-              
+
               <div className="flex justify-between items-center py-3 border-b border-gray-200">
-                <span className="font-medium text-gray-700">Scheduled Date:</span>
+                <span className="font-medium text-gray-700">
+                  Scheduled Date:
+                </span>
                 <span className="text-gray-900">
                   {new Date(booking.scheduled_date).toLocaleDateString()}
                 </span>
               </div>
-              
+
               <div className="flex justify-between items-center py-3 border-b border-gray-200">
-                <span className="font-medium text-gray-700">Scheduled Time:</span>
+                <span className="font-medium text-gray-700">
+                  Scheduled Time:
+                </span>
                 <span className="text-gray-900">{booking.scheduled_time}</span>
               </div>
-              
+
               <div className="flex justify-between items-center py-3 border-b border-gray-200">
-                <span className="font-medium text-gray-700">Service Address:</span>
-                <span className="text-gray-900 text-right max-w-xs">{booking.service_address}</span>
+                <span className="font-medium text-gray-700">
+                  Service Address:
+                </span>
+                <span className="text-gray-900 text-right max-w-xs">
+                  {booking.service_address}
+                </span>
               </div>
-              
+
               <div className="flex justify-between items-center py-3 border-b border-gray-200">
                 <span className="font-medium text-gray-700">Total Amount:</span>
-                <span className="text-2xl font-bold text-green-600">${booking.amount}</span>
+                <span className="text-2xl font-bold text-green-600">
+                  ${booking.amount}
+                </span>
               </div>
-              
+
               <div className="flex justify-between items-center py-3">
                 <span className="font-medium text-gray-700">Status:</span>
                 <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
@@ -164,7 +230,8 @@ export default function SuccessPage() {
             </li>
             <li className="flex items-start">
               <span className="text-blue-600 mr-2">•</span>
-              If you need to reschedule, please contact us at least 24 hours in advance
+              If you need to reschedule, please contact us at least 24 hours in
+              advance
             </li>
           </ul>
         </div>
@@ -186,4 +253,4 @@ export default function SuccessPage() {
       </div>
     </div>
   );
-} 
+}

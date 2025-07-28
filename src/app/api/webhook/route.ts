@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { db } from '../../../../lib/db';
+import { googleCalendar } from '../../../../lib/google-calendar';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -9,13 +10,29 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(request: NextRequest) {
+  console.log('Webhook endpoint called');
   const body = await request.text();
   const signature = request.headers.get('stripe-signature')!;
+
+  console.log('Webhook signature:', signature ? 'Present' : 'Missing');
+  console.log('Webhook body length:', body.length);
+  console.log('Webhook body preview:', body.substring(0, 200));
 
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    // Handle different signature scenarios
+    if (process.env.NODE_ENV === 'development' && (!signature || signature === 'test')) {
+      console.log('Development mode: Bypassing signature verification');
+      event = JSON.parse(body) as Stripe.Event;
+    } else if (!signature) {
+      console.error('No signature header found');
+      return NextResponse.json({ error: 'No signature header' }, { status: 400 });
+    } else {
+      // Real Stripe webhook - verify signature
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    }
+    console.log('Webhook event verified successfully:', event.type);
   } catch (err) {
     console.error('Webhook signature verification failed:', err);
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
@@ -26,27 +43,27 @@ export async function POST(request: NextRequest) {
       case 'checkout.session.completed':
         await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
         break;
-      
+
       case 'customer.subscription.created':
         await handleSubscriptionCreated(event.data.object as Stripe.Subscription);
         break;
-      
+
       case 'customer.subscription.updated':
         await handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
         break;
-      
+
       case 'customer.subscription.deleted':
         await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
         break;
-      
+
       case 'invoice.payment_succeeded':
         await handleInvoicePaymentSucceeded(event.data.object as Stripe.Invoice);
         break;
-      
+
       case 'invoice.payment_failed':
         await handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
         break;
-      
+
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
@@ -63,10 +80,13 @@ export async function POST(request: NextRequest) {
 
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
   console.log('Processing completed checkout session:', session.id);
-  
+  console.log('Session metadata:', session.metadata);
+
   if (session.mode === 'payment') {
     // One-time payment completed
+    console.log('Creating booking from payment session...');
     await createBookingFromSession(session);
+    console.log('Booking creation completed for session:', session.id);
   } else if (session.mode === 'subscription') {
     // Subscription created - the first booking will be created when the subscription is confirmed
     console.log('Subscription created, waiting for subscription confirmation');
@@ -75,14 +95,14 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
 
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   console.log('Processing subscription created:', subscription.id);
-  
+
   // Create the first booking for the subscription
   await createBookingFromSubscription(subscription);
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   console.log('Processing subscription updated:', subscription.id);
-  
+
   // Update booking status if needed
   const booking = await db.getBookingByStripeSubscriptionId(subscription.id);
   if (booking) {
@@ -92,14 +112,14 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     } else if (subscription.status === 'past_due') {
       status = 'pending';
     }
-    
+
     await db.updateBooking(booking.id.toString(), { status });
   }
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   console.log('Processing subscription deleted:', subscription.id);
-  
+
   // Cancel the booking
   const booking = await db.getBookingByStripeSubscriptionId(subscription.id);
   if (booking) {
@@ -109,7 +129,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
 async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   console.log('Processing invoice payment succeeded:', invoice.id);
-  
+
   if (invoice.subscription) {
     // Create a new booking for recurring service
     await createRecurringBooking(invoice);
@@ -118,7 +138,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   console.log('Processing invoice payment failed:', invoice.id);
-  
+
   if (invoice.subscription) {
     // Mark the booking as pending payment
     const booking = await db.getBookingByStripeSubscriptionId(invoice.subscription as string);
@@ -132,7 +152,26 @@ async function createBookingFromSession(session: Stripe.Checkout.Session) {
   try {
     // Extract booking data from session metadata
     const metadata = session.metadata!;
-    
+
+    console.log('Session metadata keys:', Object.keys(metadata));
+    console.log('Session metadata values:', metadata);
+    console.log('Session customer:', session.customer);
+    console.log('Session amount_total:', session.amount_total);
+
+    // Check if we have the required metadata
+    if (!metadata.customerEmail || !metadata.customerName) {
+      console.error('Missing required metadata for booking creation');
+      console.error('Available metadata:', metadata);
+      throw new Error('Missing required customer information in session metadata');
+    }
+
+    // Check if booking already exists for this session
+    const existingBooking = await db.getBookingByStripeSessionId(session.id);
+    if (existingBooking) {
+      console.log('Booking already exists for session:', session.id);
+      return existingBooking;
+    }
+
     // Create or get customer
     let customer = await db.getCustomerByEmail(metadata.customerEmail);
     if (!customer) {
@@ -192,6 +231,30 @@ async function createBookingFromSession(session: Stripe.Checkout.Session) {
     });
 
     console.log('Booking created from session:', booking.id);
+
+    // Create Google Calendar event
+    try {
+      console.log('Webhook: Attempting to create Google Calendar event...');
+      console.log('Webhook: Calendar ID:', process.env.GOOGLE_CALENDAR_ID || 'primary');
+
+      const calendarEvent = await googleCalendar.createCleaningEvent(booking);
+
+      // Update booking with Google Calendar event ID
+      await db.updateBooking(booking.id.toString(), {
+        google_calendar_event_id: calendarEvent.id
+      });
+
+      console.log('Webhook: Google Calendar event created:', calendarEvent.id);
+    } catch (calendarError) {
+      console.error('Webhook: Failed to create Google Calendar event:', calendarError);
+      console.error('Webhook: Error details:', {
+        message: calendarError.message,
+        code: calendarError.code,
+        status: calendarError.status
+      });
+      // Don't fail the booking creation if calendar creation fails
+      // The booking is still valid without the calendar event
+    }
   } catch (error) {
     console.error('Error creating booking from session:', error);
     throw error;
@@ -202,7 +265,7 @@ async function createBookingFromSubscription(subscription: Stripe.Subscription) 
   try {
     // Extract booking data from subscription metadata
     const metadata = subscription.metadata;
-    
+
     // Create or get customer
     let customer = await db.getCustomerByEmail(metadata.customerEmail);
     if (!customer) {
@@ -216,7 +279,7 @@ async function createBookingFromSubscription(subscription: Stripe.Subscription) 
     }
 
     // Calculate amount from subscription
-    const amount = subscription.items.data[0]?.price?.unit_amount ? 
+    const amount = subscription.items.data[0]?.price?.unit_amount ?
       subscription.items.data[0].price.unit_amount / 100 : 0;
 
     // Create booking
@@ -264,6 +327,23 @@ async function createBookingFromSubscription(subscription: Stripe.Subscription) 
     });
 
     console.log('Booking created from subscription:', booking.id);
+
+    // Create Google Calendar event
+    try {
+      console.log('Webhook: Attempting to create Google Calendar event for subscription...');
+      const calendarEvent = await googleCalendar.createCleaningEvent(booking);
+
+      // Update booking with Google Calendar event ID
+      await db.updateBooking(booking.id.toString(), {
+        google_calendar_event_id: calendarEvent.id
+      });
+
+      console.log('Webhook: Google Calendar event created for subscription:', calendarEvent.id);
+    } catch (calendarError) {
+      console.error('Webhook: Failed to create Google Calendar event for subscription:', calendarError);
+      // Don't fail the booking creation if calendar creation fails
+      // The booking is still valid without the calendar event
+    }
   } catch (error) {
     console.error('Error creating booking from subscription:', error);
     throw error;
@@ -282,7 +362,7 @@ async function createRecurringBooking(invoice: Stripe.Invoice) {
     // Calculate next service date based on recurring frequency
     const lastServiceDate = new Date(originalBooking.scheduled_date);
     let nextServiceDate = new Date(lastServiceDate);
-    
+
     const recurringFrequency = (originalBooking as any).recurring_frequency;
     if (recurringFrequency === 'weekly') {
       nextServiceDate.setDate(lastServiceDate.getDate() + 7);
@@ -335,6 +415,22 @@ async function createRecurringBooking(invoice: Stripe.Invoice) {
     });
 
     console.log('Recurring booking created:', booking.id);
+
+    // Create Google Calendar event for recurring booking
+    try {
+      console.log('Webhook: Attempting to create Google Calendar event for recurring booking...');
+      const calendarEvent = await googleCalendar.createCleaningEvent(booking);
+
+      // Update booking with Google Calendar event ID
+      await db.updateBooking(booking.id.toString(), {
+        google_calendar_event_id: calendarEvent.id
+      });
+
+      console.log('Webhook: Google Calendar event created for recurring booking:', calendarEvent.id);
+    } catch (calendarError) {
+      console.error('Webhook: Failed to create Google Calendar event for recurring booking:', calendarError);
+      // Don't fail the booking creation if calendar creation fails
+    }
   } catch (error) {
     console.error('Error creating recurring booking:', error);
     throw error;

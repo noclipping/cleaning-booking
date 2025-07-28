@@ -86,6 +86,8 @@ class DatabaseService {
   }
 
   async getBookingByStripeSessionId(sessionId: string): Promise<Booking | null> {
+    console.log('Database: Looking for booking with sessionId:', sessionId);
+
     const { data, error } = await supabase
       .from('bookings')
       .select('*')
@@ -94,12 +96,14 @@ class DatabaseService {
 
     if (error) {
       if (error.code === 'PGRST116') {
+        console.log('Database: No booking found for sessionId:', sessionId);
         return null; // No rows returned
       }
       console.error('Error fetching booking by session ID:', error);
       throw new Error('Failed to fetch booking');
     }
 
+    console.log('Database: Found booking:', data);
     return data;
   }
 
@@ -282,10 +286,10 @@ export const bookingUtils = {
       'move-in': 6,
       'post-construction': 8,
     };
-    
+
     const base = baseHours[serviceType as keyof typeof baseHours] || 2;
     const roomMultiplier = 1 + (bedrooms - 1) * 0.3 + (bathrooms - 1) * 0.2;
-    
+
     return Math.round(base * roomMultiplier);
   },
 
@@ -299,41 +303,41 @@ export const bookingUtils = {
   // Validate booking data
   validateBooking: (bookingData: Partial<Booking>): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
-    
+
     if (!bookingData.customer_name?.trim()) {
       errors.push('Customer name is required');
     }
-    
+
     if (!bookingData.customer_email?.trim()) {
       errors.push('Customer email is required');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(bookingData.customer_email)) {
       errors.push('Invalid email format');
     }
-    
+
     if (!bookingData.customer_phone?.trim()) {
       errors.push('Customer phone is required');
     }
-    
+
     if (!bookingData.service_address?.trim()) {
       errors.push('Service address is required');
     }
-    
+
     if (!bookingData.service_type?.trim()) {
       errors.push('Service type is required');
     }
-    
+
     if (!bookingData.amount || bookingData.amount <= 0) {
       errors.push('Valid amount is required');
     }
-    
+
     if (!bookingData.scheduled_date?.trim()) {
       errors.push('Scheduled date is required');
     }
-    
+
     if (!bookingData.scheduled_time?.trim()) {
       errors.push('Scheduled time is required');
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors,

@@ -112,9 +112,9 @@ export async function POST(request: NextRequest) {
         } catch (calendarError) {
             console.error('Fallback: Failed to create Google Calendar event:', calendarError);
             console.error('Fallback: Error details:', {
-                message: calendarError.message,
-                code: calendarError.code,
-                status: calendarError.status
+                message: calendarError instanceof Error ? calendarError.message : 'Unknown error',
+                code: (calendarError as any)?.code,
+                status: (calendarError as any)?.status
             });
             // Don't fail the booking creation if calendar creation fails
         }

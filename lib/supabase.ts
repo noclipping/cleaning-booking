@@ -60,6 +60,34 @@ export interface Database {
           notes: string | null;
           stripe_payment_intent_id: string | null;
           stripe_session_id: string | null;
+          google_calendar_event_id: string | null;
+          // Recurring service fields
+          recurring_type: string;
+          recurring_frequency: string | null;
+          discount_percentage: number;
+          // Service details
+          bedrooms: number;
+          bathrooms: number;
+          // Appliance services
+          oven_cleaning: boolean;
+          oven_count: number;
+          microwave_dishwasher_cleaning: boolean;
+          microwave_dishwasher_count: number;
+          refrigerator_cleaning: boolean;
+          refrigerator_count: number;
+          // Wall and window services
+          wall_cleaning: boolean;
+          wall_rooms_count: number;
+          interior_window_cleaning: boolean;
+          exterior_window_cleaning: boolean;
+          exterior_windows_count: number;
+          // Additional services
+          laundry_service: boolean;
+          laundry_loads: number;
+          make_beds: boolean;
+          beds_count: number;
+          trash_removal: boolean;
+          trash_bags: number;
           created_at: string;
           updated_at: string;
         };
@@ -77,6 +105,34 @@ export interface Database {
           notes?: string | null;
           stripe_payment_intent_id?: string | null;
           stripe_session_id?: string | null;
+          google_calendar_event_id?: string | null;
+          // Recurring service fields
+          recurring_type?: string;
+          recurring_frequency?: string | null;
+          discount_percentage?: number;
+          // Service details
+          bedrooms?: number;
+          bathrooms?: number;
+          // Appliance services
+          oven_cleaning?: boolean;
+          oven_count?: number;
+          microwave_dishwasher_cleaning?: boolean;
+          microwave_dishwasher_count?: number;
+          refrigerator_cleaning?: boolean;
+          refrigerator_count?: number;
+          // Wall and window services
+          wall_cleaning?: boolean;
+          wall_rooms_count?: number;
+          interior_window_cleaning?: boolean;
+          exterior_window_cleaning?: boolean;
+          exterior_windows_count?: number;
+          // Additional services
+          laundry_service?: boolean;
+          laundry_loads?: number;
+          make_beds?: boolean;
+          beds_count?: number;
+          trash_removal?: boolean;
+          trash_bags?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -94,6 +150,34 @@ export interface Database {
           notes?: string | null;
           stripe_payment_intent_id?: string | null;
           stripe_session_id?: string | null;
+          google_calendar_event_id?: string | null;
+          // Recurring service fields
+          recurring_type?: string;
+          recurring_frequency?: string | null;
+          discount_percentage?: number;
+          // Service details
+          bedrooms?: number;
+          bathrooms?: number;
+          // Appliance services
+          oven_cleaning?: boolean;
+          oven_count?: number;
+          microwave_dishwasher_cleaning?: boolean;
+          microwave_dishwasher_count?: number;
+          refrigerator_cleaning?: boolean;
+          refrigerator_count?: number;
+          // Wall and window services
+          wall_cleaning?: boolean;
+          wall_rooms_count?: number;
+          interior_window_cleaning?: boolean;
+          exterior_window_cleaning?: boolean;
+          exterior_windows_count?: number;
+          // Additional services
+          laundry_service?: boolean;
+          laundry_loads?: number;
+          make_beds?: boolean;
+          beds_count?: number;
+          trash_removal?: boolean;
+          trash_bags?: number;
           created_at?: string;
           updated_at?: string;
         };

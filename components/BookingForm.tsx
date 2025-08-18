@@ -158,7 +158,7 @@ export default function BookingForm({ calculatedPrice = 0, selectedService = '',
             value={formData.phone}
             onChange={handleInputChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="(555) 123-4567"
+                            placeholder="570-470-4896"
           />
         </div>
 

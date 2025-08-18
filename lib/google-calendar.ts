@@ -73,10 +73,10 @@ class GoogleCalendarService {
         } catch (error) {
             console.error('Google Calendar: Error creating event:', error);
             console.error('Google Calendar: Error details:', {
-                message: error.message,
-                code: error.code,
-                status: error.status,
-                errors: error.errors
+                message: error instanceof Error ? error.message : 'Unknown error',
+                code: (error as any)?.code,
+                status: (error as any)?.status,
+                errors: (error as any)?.errors
             });
             throw error;
         }
@@ -154,12 +154,12 @@ class GoogleCalendarService {
         };
 
         return `
-🧹 ${serviceTypeNames[booking.service_type] || 'Cleaning Service'}
+🧹 ${serviceTypeNames[booking.service_type as keyof typeof serviceTypeNames] || 'Cleaning Service'}
 
 📅 Service Details:
 • Date: ${new Date(booking.scheduled_date).toLocaleDateString()}
 • Time: ${booking.scheduled_time}
-• Frequency: ${frequencyNames[booking.recurring_type] || 'One-time'}
+• Frequency: ${frequencyNames[booking.recurring_type as keyof typeof frequencyNames] || 'One-time'}
 • Duration: ${this.getServiceDuration(booking.service_type)} hours
 
 👤 Customer Information:
@@ -223,7 +223,7 @@ Created by Cleaning Service Booking System
             'move-out': 6,
             'post-construction': 8,
         };
-        return durations[serviceType] || 2;
+        return durations[serviceType as keyof typeof durations] || 2;
     }
 }
 

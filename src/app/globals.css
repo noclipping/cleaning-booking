@@ -18,3 +18,24 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Hide scrollbar for webkit browsers */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Smooth scrolling for carousel */
+.scroll-smooth {
+  scroll-behavior: smooth;
+}
+
+/* Custom scroll behavior for better carousel experience */
+#reviews-carousel {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}

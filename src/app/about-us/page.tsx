@@ -17,9 +17,13 @@ export default function AboutUs() {
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center">
+          <div className="flex justify-center mb-6"></div>
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
             About
-            <span className="text-blue-600"> CleanPro Services</span>
+            <span className="text-blue-600">
+              {" "}
+              Wallenpaupack Cleaning Services
+            </span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             We're a family-owned cleaning company dedicated to providing
@@ -33,58 +37,41 @@ export default function AboutUs() {
       {/* Our Story */}
       <div className="bg-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="max-w-4xl mx-auto">
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-6">
                 Our Story
               </h2>
               <div className="space-y-4 text-gray-600">
                 <p>
-                  Founded in 2015, CleanPro Services began with a simple
-                  mission: to provide professional cleaning services that exceed
-                  expectations. What started as a small local business has grown
-                  into a trusted name in residential and commercial cleaning.
+                  Wallenpaupack Cleaning Services was founded with a simple
+                  mission: to raise the standard of professional cleaning in the
+                  Lake Wallenpaupack and NEPA region.
                 </p>
                 <p>
-                  Our founder, Sarah Johnson, started the company after working
-                  in the hospitality industry and seeing the importance of
-                  maintaining clean, welcoming spaces. She brought that same
-                  attention to detail and commitment to excellence to every job
-                  we take on.
+                  As local business owners and members of this community, we saw
+                  a clear gap — homeowners, businesses, and rental property
+                  owners were looking for reliable, detail-oriented cleaning
+                  services they could trust, but too often ended up
+                  disappointed. We set out to change that.
                 </p>
                 <p>
-                  Today, we serve hundreds of satisfied customers across the
-                  region, maintaining the same high standards and personal touch
-                  that made us successful from day one.
+                  From the start, our focus has been on professionalism in every
+                  detail — from showing up on time and prepared, to
+                  communicating clearly, to delivering results that exceed
+                  expectations. Whether it's a routine cleaning, a deep clean
+                  before guests arrive, or specialized services for short-term
+                  rentals and move-in/move-outs, we approach each job with care,
+                  consistency, and respect for your space.
                 </p>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                Quick Facts
-              </h3>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Years in Business</span>
-                  <span className="font-semibold text-blue-600">9+ Years</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Happy Customers</span>
-                  <span className="font-semibold text-blue-600">500+</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Team Members</span>
-                  <span className="font-semibold text-blue-600">25+</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Services Offered</span>
-                  <span className="font-semibold text-blue-600">10+</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Satisfaction Rate</span>
-                  <span className="font-semibold text-blue-600">98%</span>
-                </div>
+                <p>
+                  Our goal is to be more than just another cleaning company — we
+                  want to be the team you know will get it right the first time,
+                  every time. We believe that when you combine top-tier service
+                  with genuine pride in our work, the results speak for
+                  themselves.
+                </p>
+                <p>This is our home, our community, and our commitment.</p>
               </div>
             </div>
           </div>
@@ -200,99 +187,6 @@ export default function AboutUs() {
         </div>
       </div>
 
-      {/* Our Team */}
-      <div className="bg-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Meet Our Team
-            </h2>
-            <p className="text-xl text-gray-600">
-              The dedicated professionals behind our success
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-32 h-32 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <svg
-                  className="w-16 h-16 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                Sarah Johnson
-              </h3>
-              <p className="text-blue-600 mb-2">Founder & CEO</p>
-              <p className="text-gray-600 text-sm">
-                With over 15 years of experience in the cleaning industry, Sarah
-                leads our team with passion and expertise.
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-32 h-32 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <svg
-                  className="w-16 h-16 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                Mike Rodriguez
-              </h3>
-              <p className="text-blue-600 mb-2">Operations Manager</p>
-              <p className="text-gray-600 text-sm">
-                Mike ensures every job is completed to perfection and manages
-                our team of professional cleaners.
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-32 h-32 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <svg
-                  className="w-16 h-16 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                Emily Chen
-              </h3>
-              <p className="text-blue-600 mb-2">Customer Success</p>
-              <p className="text-gray-600 text-sm">
-                Emily works directly with our clients to ensure their complete
-                satisfaction and handles all customer inquiries.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Contact Form Section */}
       <div className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -301,11 +195,12 @@ export default function AboutUs() {
               Get in Touch
             </h2>
             <p className="text-xl text-gray-600">
-              Ready to experience the CleanPro difference? Contact us today!
+              Ready to experience the Wallenpaupack Cleaning Services
+              difference? Contact us today!
             </p>
           </div>
           <ContactForm
-            title="Contact CleanPro Services"
+            title="Contact Wallenpaupack Cleaning Services"
             onSubmit={handleContactSubmit}
           />
         </div>

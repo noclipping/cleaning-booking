@@ -248,9 +248,9 @@ async function createBookingFromSession(session: Stripe.Checkout.Session) {
     } catch (calendarError) {
       console.error('Webhook: Failed to create Google Calendar event:', calendarError);
       console.error('Webhook: Error details:', {
-        message: calendarError.message,
-        code: calendarError.code,
-        status: calendarError.status
+        message: calendarError instanceof Error ? calendarError.message : 'Unknown error',
+        code: (calendarError as any)?.code,
+        status: (calendarError as any)?.status
       });
       // Don't fail the booking creation if calendar creation fails
       // The booking is still valid without the calendar event

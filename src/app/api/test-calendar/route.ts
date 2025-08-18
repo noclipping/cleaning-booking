@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
         // Test 1: List available calendars
         console.log('Testing calendar list access...');
         const calendarList = await calendar.calendarList.list();
-        const availableCalendars = calendarList.data.items?.map(cal => ({
+        const availableCalendars = calendarList.data.items?.map((cal: any) => ({
             id: cal.id,
             summary: cal.summary,
             accessRole: cal.accessRole
@@ -44,8 +44,8 @@ export async function GET(request: NextRequest) {
             };
             console.log('Calendar access successful:', calendarAccess);
         } catch (calendarError) {
-            console.log('Calendar access failed:', calendarError.message);
-            calendarAccess = { error: calendarError.message };
+            console.log('Calendar access failed:', calendarError instanceof Error ? calendarError.message : 'Unknown error');
+            calendarAccess = { error: calendarError instanceof Error ? calendarError.message : 'Unknown error' };
         }
 
         // Test 3: Try to create a test event
@@ -86,8 +86,8 @@ export async function GET(request: NextRequest) {
             console.log('Test event cleaned up');
 
         } catch (eventError) {
-            console.log('Test event creation failed:', eventError.message);
-            testEvent = { error: eventError.message };
+            console.log('Test event creation failed:', eventError instanceof Error ? eventError.message : 'Unknown error');
+            testEvent = { error: eventError instanceof Error ? eventError.message : 'Unknown error' };
         }
 
         return NextResponse.json({
@@ -107,10 +107,10 @@ export async function GET(request: NextRequest) {
         console.error('Calendar test failed:', error);
         return NextResponse.json({
             success: false,
-            error: error.message,
+            error: error instanceof Error ? error.message : 'Unknown error',
             details: {
-                code: error.code,
-                status: error.status
+                code: (error as any)?.code,
+                status: (error as any)?.status
             }
         }, { status: 500 });
     }

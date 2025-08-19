@@ -5,12 +5,6 @@ import ContactForm from "../../../components/ContactForm";
 import Image from "next/image";
 
 export default function WindowCleaning() {
-  const handleContactSubmit = (data: any) => {
-    console.log("Contact form submitted:", data);
-    // Here you would typically send the data to your backend
-    alert("Thank you for your inquiry! We will get back to you soon.");
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <Navigation />
@@ -378,10 +372,7 @@ export default function WindowCleaning() {
               Contact us for a free quote on your window cleaning needs
             </p>
           </div>
-          <ContactForm
-            title="Request Window Cleaning Quote"
-            onSubmit={handleContactSubmit}
-          />
+          <ContactForm title="Request Window Cleaning Quote" />
         </div>
       </div>
     </div>

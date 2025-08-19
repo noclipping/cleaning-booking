@@ -5,12 +5,6 @@ import ContactForm from "../../../components/ContactForm";
 import Image from "next/image";
 
 export default function ShortTermRentalCleaning() {
-  const handleContactSubmit = (data: any) => {
-    console.log("Contact form submitted:", data);
-    // Here you would typically send the data to your backend
-    alert("Thank you for your inquiry! We will get back to you soon.");
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <Navigation />
@@ -288,10 +282,7 @@ export default function ShortTermRentalCleaning() {
               Contact us to discuss your short-term rental cleaning needs
             </p>
           </div>
-          <ContactForm
-            title="Request Short Term Rental Cleaning Quote"
-            onSubmit={handleContactSubmit}
-          />
+          <ContactForm title="Request Short Term Rental Cleaning Quote" />
         </div>
       </div>
     </div>

@@ -4,12 +4,6 @@ import Navigation from "../../../components/Navigation";
 import ContactForm from "../../../components/ContactForm";
 
 export default function AboutUs() {
-  const handleContactSubmit = (data: any) => {
-    console.log("Contact form submitted:", data);
-    // Here you would typically send the data to your backend
-    alert("Thank you for your inquiry! We will get back to you soon.");
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <Navigation />
@@ -199,10 +193,7 @@ export default function AboutUs() {
               difference? Contact us today!
             </p>
           </div>
-          <ContactForm
-            title="Contact Wallenpaupack Cleaning Services"
-            onSubmit={handleContactSubmit}
-          />
+          <ContactForm title="Contact Wallenpaupack Cleaning Services" />
         </div>
       </div>
     </div>

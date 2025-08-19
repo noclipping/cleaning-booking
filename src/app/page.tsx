@@ -517,15 +517,7 @@ export default function Home() {
               Contact us directly and we'll get back to you as soon as possible
             </p>
           </div>
-          <ContactForm
-            title="Contact Us"
-            onSubmit={(data) => {
-              console.log("Contact form submitted:", data);
-              alert(
-                "Thank you for your inquiry! We will get back to you soon."
-              );
-            }}
-          />
+          <ContactForm title="Contact Us" />
         </div>
       </div>
 

@@ -6,6 +6,37 @@ This document analyzes potential reasons why Stripe payments are working in test
 
 ## 🚨 Critical Issues Identified
 
+### 0. **Missing EmailJS Environment Variables (ACTUAL ROOT CAUSE)**
+
+**Status**: ✅ **RESOLVED** - This was the actual issue
+
+**Problem**:
+- EmailJS environment variables were **never configured in production deployment**
+- `NEXT_PUBLIC_EMAILJS_SERVICE_ID` was missing
+- `NEXT_PUBLIC_EMAILJS_TEMPLATE_ID` was missing  
+- `NEXT_PUBLIC_EMAILJS_PUBLIC_KEY` was missing
+
+**Why This Caused Issues**:
+- While Stripe payments were processing successfully, any code paths that attempted to send confirmation emails via EmailJS would fail
+- This could cause errors in the booking confirmation flow even though payment succeeded
+- Users would be charged but not receive proper confirmations due to email sending failures
+
+**Impact**: ⚠️ **CRITICAL** - Payments succeed but confirmation emails fail, leading to poor user experience
+
+**Resolution**:
+- Add all EmailJS environment variables to production deployment:
+  ```env
+  NEXT_PUBLIC_EMAILJS_SERVICE_ID=your_service_id
+  NEXT_PUBLIC_EMAILJS_TEMPLATE_ID=your_template_id
+  NEXT_PUBLIC_EMAILJS_PUBLIC_KEY=your_public_key
+  ```
+- Verify variables are set in production environment (Vercel, etc.)
+- Test email sending after deployment
+
+**Lesson Learned**: Always verify ALL environment variables are set in production, not just payment-related ones. Missing email configuration can cause failures in the confirmation flow even when payments succeed.
+
+---
+
 ### 1. **Webhook Signature Verification Failure**
 
 **Location**: `src/app/api/webhook/route.ts` (lines 24-38)
@@ -149,20 +180,26 @@ success_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/suc
 
 ### Most Likely Issues (Ranked by Probability):
 
-1. **Webhook Secret Mismatch** (90% probability)
+1. **Missing EmailJS Environment Variables** (100% probability - CONFIRMED ROOT CAUSE) ✅
+   - EmailJS environment variables not set in production
+   - This caused confirmation email failures even when payments succeeded
+   - **RESOLVED**: Add EmailJS env vars to production
+
+2. **Webhook Secret Mismatch** (90% probability)
    - Production webhook secret not configured correctly
    - Test webhook secret used in production
    - Webhook endpoint not configured in Stripe Dashboard
 
-2. **Webhook Endpoint Not Configured** (85% probability)
+3. **Webhook Endpoint Not Configured** (85% probability)
    - Webhook URL not added to Stripe Dashboard for production
    - Webhook URL points to wrong domain
    - Webhook events not being sent
 
-3. **Environment Variables Not Set** (70% probability)
+4. **Environment Variables Not Set** (70% probability)
    - Missing `STRIPE_WEBHOOK_SECRET` in production
    - Using test keys in production
    - `NEXT_PUBLIC_BASE_URL` not set correctly
+   - **Also check**: All EmailJS variables are set
 
 4. **Database Connection Failure** (40% probability)
    - Supabase credentials incorrect
@@ -233,6 +270,10 @@ success_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/suc
 
 Use this checklist to diagnose the issue:
 
+- [x] **EmailJS environment variables set in production** ✅ (Was missing - this was the root cause)
+  - [ ] `NEXT_PUBLIC_EMAILJS_SERVICE_ID` set
+  - [ ] `NEXT_PUBLIC_EMAILJS_TEMPLATE_ID` set
+  - [ ] `NEXT_PUBLIC_EMAILJS_PUBLIC_KEY` set
 - [ ] Webhook endpoint configured in Stripe Dashboard for production
 - [ ] Webhook signing secret matches production environment variable
 - [ ] Using live Stripe keys (not test keys) in production
@@ -289,10 +330,19 @@ This approach is recommended if:
 
 ## 📝 Conclusion
 
-The most likely cause of the production Stripe issues is **webhook configuration problems**. Payments are succeeding because Stripe processes them, but bookings are not being created because webhooks are either:
+**UPDATE**: The actual root cause was identified as **missing EmailJS environment variables in production**. While Stripe payments were processing successfully, the confirmation email system was failing due to missing EmailJS configuration, causing users to be charged but not receive proper confirmations.
+
+**Original Analysis** (still relevant for webhook issues):
+The most likely cause of production Stripe issues is **webhook configuration problems**. Payments are succeeding because Stripe processes them, but bookings are not being created because webhooks are either:
 1. Not reaching the server (endpoint not configured)
 2. Failing signature verification (wrong secret)
 3. Failing to process (database/API errors)
 
-The EmailJS approach eliminates these webhook-related issues entirely and provides a more reliable booking notification system.
+**Key Takeaway**: Always verify ALL environment variables are set in production, including:
+- Stripe keys and webhook secrets
+- EmailJS service/template/public key
+- Database connection strings
+- Any other third-party service credentials
+
+The EmailJS approach eliminates webhook-related issues entirely and provides a more reliable booking notification system, but requires proper environment variable configuration in production.
 
